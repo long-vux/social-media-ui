@@ -42,7 +42,9 @@
 .searchInput {
     border: none;
     width: 70%;
+    outline: none;
 }
+
 
 .topbarRight{
     flex: 4;

@@ -1,11 +1,21 @@
 import "./topbar.css";
 import { Search, Person, Chat, Notifications } from "@mui/icons-material";
+import { AuthContext } from "../../context/AuthContext";
+import { useContext } from "react";
+import { Link } from "react-router-dom";
 
 export default function Topbar() {
+
+  const {user} = useContext(AuthContext);
+  const PF = process.env.REACT_APP_PUBLIC_FOLDER;
+
+
   return (
     <div className="topbarContainer">
       <div className="topbarLeft">
-        <span className="logo">Vusocial</span>
+        <Link to="/" style={{textDecoration:'none'}}>
+          <span className="logo">Vusocial</span>
+        </Link>
       </div>
       <div className="topbarCenter">
         <div className="searchbar">
@@ -35,7 +45,7 @@ export default function Topbar() {
             <span className="topbarIconBadge">1</span>
           </div>
         </div>
-        <img src="/assets/person/1.jpeg" alt="" className="topbarImg" />
+        <img src= {user.profilePicture ? user.profilePicture : `${PF}/noProfileImg.jpg`} alt="" className="topbarImg" />
       </div>
     </div>
   );

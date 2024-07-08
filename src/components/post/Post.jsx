@@ -1,30 +1,63 @@
 import { MoreVert } from "@mui/icons-material";
 import "./post.css";
-import { Users } from "../../dummyData";
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import axios from "axios";
+import { formatDistanceToNow } from 'date-fns';
+import { AuthContext } from "../../context/AuthContext";
 
 export default function Post({ post }) {
-  const [like, setLike] = useState(post.like);
+  const [like, setLike] = useState(post.likes.length);
   const [isLiked, setIsLiked] = useState(false);
+  const PF = process.env.REACT_APP_PUBLIC_FOLDER;
+  const { user: currentUser } = useContext(AuthContext);
+  const [user, setUser] = useState({});
+  
+  // check if user is liked
+  useEffect(() =>{
+    setIsLiked(post.likes.includes(currentUser._id))
+  },[post.likes, currentUser._id])
 
-  const likeHander = () => {
-    setLike(isLiked ? like - 1 : like + 1);
-    setIsLiked(!isLiked);
+  // fetch user
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await axios.get(`http://localhost:8800/api/users?userId=${post.userId}`);
+        setUser(res.data);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+    fetchUser();
+  }, [post.userId]);
+
+  // handle like
+  const likeHandler = async () => {
+    try{
+      await axios.put(`http://localhost:8800/api/posts/${post._id}/like`, {userId: currentUser._id})
+      setLike(isLiked ? like - 1 : like + 1);
+      setIsLiked(!isLiked);
+    }catch(err){
+      console.log(err)
+    }
   };
+
   return (
     <div className="post">
       <div className="postWrapper">
         <div className="postTop">
           <div className="postTopLeft">
             <img
-              src={Users.filter((u) => u.id === post.userId)[0].profilePicture}
+              src={
+                user?.profilePicture
+                  ? user.profilePicture 
+                  : `${PF}/noProfileImg.jpg`}
               alt=""
               className="postProfileImg"
             />
             <span className="postUsername">
-              {Users.filter((u) => u.id === post.userId)[0].username}
+              {user ? user.username : "Unknown"}
             </span>
-            <span className="postDate">{post.date}</span>
+            <span className="postDate">{formatDistanceToNow(new Date(post.createdAt))} ago</span>
           </div>
           <div className="postTopRight">
             <MoreVert />
@@ -36,22 +69,22 @@ export default function Post({ post }) {
         </div>
         <div className="postBottom">
           <div className="postBottomLeft">
-            <img
-              src="/assets/like.png"
-              alt=""
-              onClick={likeHander}
+          <img
               className="likeIcon"
+              src={`${PF}like.png`}
+              onClick={likeHandler}
+              alt=""
             />
             <img
-              src="/assets/heart.png"
-              alt=""
-              onClick={likeHander}
               className="likeIcon"
+              src={`${PF}heart.png`}
+              onClick={likeHandler}
+              alt=""
             />
             <span className="postLikeCounter">{like} people like it</span>
           </div>
           <div className="postBottomRight">
-            <span className="postCommentText">{post.comment} comments</span>
+            <span className="postCommentText">{post.comment || 0} comments</span>
           </div>
         </div>
       </div>
